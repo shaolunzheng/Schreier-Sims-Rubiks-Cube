@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np, time
 from functions import compose, inverse, compute_schreiers_vector, generating_set, sims_filter
 
 turns = {
@@ -19,8 +19,17 @@ turns = {
 
 n = 48
 
+# different generating sets to choose from
+rubiks = [turns["R"], turns["L"], turns["U"], turns["D"], turns["F"], turns["B"]]
+ru = [compose([turns["R"], turns["U"]], n)]
+rup = [compose([turns["R"], inverse(turns["U"], n)], n)]
+h = [compose([turns["R"], turns["R"]], n), compose([turns["L"], turns["L"]], n), turns["U"], turns["D"], 
+     compose([turns["F"], turns["F"]], n), compose([turns["B"], turns["B"]], n)]
+highest_order_element = [compose([turns["R"], turns["U"], turns["U"], inverse(turns["D"], n), turns["B"], inverse(turns["D"], n)], n)]
+circle = [compose([turns["R"], turns["U"], turns["L"], turns["D"]], n)]
+
 # generating set
-generators = [turns["R"], turns["L"], turns["U"], turns["D"], turns["F"], turns["B"]]
+generators = rubiks
 
 # order in which elements should be stabilized
 solving_order = np.array([26,28,30,32,25,27,29,31,4,8,12,16,17,19,21,18,20,22,
@@ -41,6 +50,8 @@ i = 0
 
 temp_generators = generators
 
+start_time = time.time()
+
 while(len(temp_generators) > 0):
     k = solving_order[i]
 
@@ -58,6 +69,10 @@ while(len(temp_generators) > 0):
     temp_generators = sims_filter(new_generators, n)
 
     i += 1
+
+    elapsed_time = time.time()-start_time
+    print(f"Time for iteration {i}: {elapsed_time:.2f} seconds")
+
 
 # order of 3x3 rubiks cube group
 orders_list = np.array(orders_list, dtype=object)
