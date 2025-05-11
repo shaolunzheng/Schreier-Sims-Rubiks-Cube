@@ -68,7 +68,7 @@ def sims_filter(generators, n):
     k = 0
     while (k < len(generators)):
         move = generators[k]
-        if np.array_equal(move,np.array(list(range(n)))):
+        if np.array_equal(move, np.array(list(range(n)))):
             k += 1
         else:
             i, j = pair(move)
@@ -78,5 +78,8 @@ def sims_filter(generators, n):
                 k += 1
             else:
                 generators[k] = compose([entry, inverse(move, n)], n)
-    result = [table[i,j] for i in range(n) for j in range(n) if np.any(table[i,j] != 0)]
+
+    helper_table = np.any(table != 0, axis = 2)
+    result = [generator for generator in table[helper_table]]
+
     return result
