@@ -1,8 +1,8 @@
 import numpy as np
 
-# moves: an np.array containing multiple moves
+# moves: an list of moves
 # n: order of symmetric group
-# compose: composes the elements in moves in order
+# compose(): composes the elements in moves in order
 def compose(moves, n):
     result = np.arange(n)
     for move in moves:
@@ -10,15 +10,17 @@ def compose(moves, n):
     return result
 
 # move: a single move
-# inverse: computes the inverse of this move
+# n: order of symmetric group
+# inverse(): computes the inverse of this move
 def inverse(move, n):
     result = np.arange(n)
     result[move] = result
     return result
 
-# generators: an np.array of moves
+# generators: a list of moves
+# n: order of symmetric group
 # k: the current index
-# computes Schreiers vector
+# compute_schreiers_vector(): computes Schreier's vector
 def compute_schreiers_vector(generators, n, k):
     result = [np.zeros(n, dtype = int) for _ in range(n)]
     result[k] = np.arange(n)
@@ -42,11 +44,12 @@ def compute_schreiers_vector(generators, n, k):
                         counter += 1
     return result
 
-# generators: an np.array of generators
+# generators: a list of generators
 # schreiers_vector: Schreier's vector of the current stabilizer group
 # schreiers_vector_non_zero: all non-zero entries in Schreier's vector
+# n: order of symmetric group
 # k: the current index
-# computes a generating set for the next stabilizer group
+# generating_set(): computes a generating set for the next stabilizer group
 def generating_set(generators, schreiers_vector, schreiers_vector_non_zero, n, k):
     result = []
     # use helper set to efficiently check membership (np.array doesn't support hashing)
@@ -62,15 +65,16 @@ def generating_set(generators, schreiers_vector, schreiers_vector_non_zero, n, k
     return result
 
 # move: a single move
-# finds first index i where move[i] != i (used in Sims filter)
+# pair(): finds first index i where move[i] != i (used in Sims filter)
 def pair(move):
     i = 0
     while (move[i] == i):
         i += 1
     return i, move[i]
 
-# generators: a np.array of generators
-# restricts the number of generators to a maximum of n(n-1)/2
+# generators: a list of generators
+# n: order of symmetric group
+# sims_filter(): restricts the number of generators to a maximum of n(n-1)/2
 def sims_filter(generators, n):
     table = np.zeros((n, n, n), dtype = int)
     k = 0
