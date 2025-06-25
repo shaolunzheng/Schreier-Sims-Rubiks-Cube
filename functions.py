@@ -1,6 +1,9 @@
 import numpy as np
 from sympy.combinatorics import Permutation
 
+# n: size of the Rubik's cube (n x n x n)
+# N: order of the symmetric group
+# enuerate(): enumerates the moves that generate the Rubik's cube
 def enumerate(n, N):
     turns = set()
 
@@ -38,8 +41,8 @@ def enumerate(n, N):
 
     return turns
 
-# generators: a list of moves
-# n: order of symmetric group
+# generators: a set of moves
+# N: order of the symmetric group
 # k: the current index
 # compute_schreiers_vector(): computes Schreier's vector
 def compute_schreiers_vector(generators, N, k):
@@ -61,10 +64,9 @@ def compute_schreiers_vector(generators, N, k):
                         counter += 1
     return vector
 
-# generators: a list of generators
+# generators: a set of generators
 # schreiers_vector: Schreier's vector of the current stabilizer group
 # schreiers_vector_non_zero: all non-zero entries in Schreier's vector
-# n: order of symmetric group
 # k: the current index
 # generating_set(): computes a generating set for the next stabilizer group
 def generating_set(generators, schreiers_vector, schreiers_vector_non_zero, k):
@@ -85,9 +87,9 @@ def pair(move):
         i += 1
     return i, move(i)
 
-# generators: a list of generators
-# n: order of symmetric group
-# sims_filter(): restricts the number of generators to a maximum of n(n-1)/2
+# generators: a set of generators
+# N: order of the symmetric group
+# sims_filter(): restricts the number of generators to a maximum of N(N-1)/2
 def sims_filter(generators, N):
     table = np.full((N, N), None)
     for generator in generators:
