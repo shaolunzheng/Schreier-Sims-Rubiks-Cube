@@ -1,10 +1,10 @@
 import numpy as np, time, random
 from sympy.combinatorics import Permutation, PermutationGroup
-from functions import enumerate
+from functions import enumerate, solved_states
 
 # test runtime of implementation via sympy.combinatorics PermutationGroup
 
-n = 3
+n = 8
 
 if n % 2 == 0:
     N = 6 * n * n

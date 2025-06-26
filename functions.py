@@ -1,5 +1,6 @@
 import numpy as np
 from sympy.combinatorics import Permutation
+from itertools import combinations
 
 # n: size of the Rubik's cube (n x n x n)
 # N: order of the symmetric group
@@ -40,6 +41,51 @@ def enumerate(n, N):
             turns.add(P)
 
     return turns
+
+# n: size of the Rubik's cube (n x n x n)
+# human_order(): mimics a human solving technique by choosing a specific order of stabilization
+# still needs to be automated
+def human_order(n):
+    if n == 3:
+        return [1,3,5,7,0,2,4,6,9,13,35,39,25,27,29,31,24,26,28,30,
+               8,10,11,12,14,15,16,17,18,19,20,21,22,23,32,33,34,36,37,38,40,41,42,43,44,45,46,47]
+    if n == 4:
+        return [3,7,11,15,51,55,59,63,19,23,27,31,19,23,27,31,35,39,43,47,67,71,75,79,83,87,91,95,
+                1,6,5,10,9,14,13,2,0,4,8,12,17,22,25,30,66,77,69,74,49,54,53,58,57,62,61,50,48,52,56,60,
+                20,21,26,24,36,37,42,40,64,65,70,68,80,81,86,84,16,18,29,28,32,34,45,44,72,73,78,76,88,89,94,92,33,38,41,46,82,93,85,90]
+
+# n: size of the Rubik's cube (n x n x n)
+# N: order of the symmetric group
+# solved_states(): computes the set of visually solved states for a Rubik's cube of size n
+def solved_states(n, N):
+    solved_states = set()
+    solved_states.add(Permutation(N-1))
+    helper_set = set()
+
+    if n % 2 == 0:
+        a = n**2 # number of stickers on each face
+        b = a//4 # number of 4-clusters on each face
+        c = n//2 # side length of 4-cluster
+        d = n//2 # side width of 4-cluster
+    else:
+        a = n**2-1 # number of (labeled, i.e. without middle center) stickers on each face
+        b = a//4 # number of 4-clusters on each face
+        c = (n+1)//2 # side length of 4-cluster
+        d = (n-1)//2 # side width of 4-cluster
+
+    for k in range(1, d):
+        for i in range(1, c):
+            P = Permutation(N-1)(k*c+i, k*c+i+b)
+            helper_set.add(P)
+
+    for r in range(1, len(helper_set)+1):
+        for subset in combinations(helper_set, r):
+            P = Permutation(N-1)
+            for move in subset:
+                P *= move
+            solved_states.add(P)
+
+    return solved_states
 
 # generators: a set of moves
 # N: order of the symmetric group
