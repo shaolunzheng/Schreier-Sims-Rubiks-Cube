@@ -1,11 +1,12 @@
 import numpy as np
 from sympy.combinatorics import Permutation
 from itertools import combinations
+import config
 
 # n: size of the Rubik's cube (n x n x n)
 # N: order of the symmetric group
-# enuerate(): enumerates the moves that generate the Rubik's cube
-def enumerate(n, N):
+# enumerate(): enumerates the moves that generate the Rubik's cube
+def enumerate_cube(n, N):
     turns = set()
 
     if n % 2 == 0:
@@ -87,6 +88,13 @@ def solved_states(n, N):
 
     return solved_states
 
+# move: a single move
+# value: length of the move written as composition of original generators
+# update_length(): determines whether a shorter length already exists, then assigns the shortest length
+def update_length(move, value):
+    if value < config.lengths.get(move, float('inf')):
+        config.lengths[move] = value
+
 # generators: a set of moves
 # N: order of the symmetric group
 # k: the current index
@@ -103,10 +111,12 @@ def compute_schreiers_vector(generators, N, k):
                     j = generator(i)
                     if vector[j] is None:
                         vector[j] = vector[i] * generator
+                        update_length(vector[j], config.lengths[vector[i]] + config.lengths[generator])
                         counter += 1
                     j = (generator**-1)(i)
                     if vector[j] is None:
                         vector[j] = vector[i] * (generator**-1)
+                        update_length(vector[j], config.lengths[vector[i]] + config.lengths[generator])
                         counter += 1
     return vector
 
@@ -116,20 +126,21 @@ def compute_schreiers_vector(generators, N, k):
 # k: the current index
 # generating_set(): computes a generating set for the next stabilizer group
 def generating_set(generators, schreiers_vector, schreiers_vector_non_zero, k):
-    generating_set = set()
+    result_set = set()
     for a in generators:
         for u in schreiers_vector_non_zero:
             au = u * a
-            phi = schreiers_vector[au(k)]
-            new_generator = au * phi**-1
-            generating_set.add(new_generator)
-    return generating_set
+            pi = schreiers_vector[au(k)]
+            new_generator = au * pi**-1
+            update_length(new_generator, config.lengths[a] + config.lengths[u] + config.lengths[pi])
+            result_set.add(new_generator)
+    return result_set
 
 # move: a single move
-# pair(): finds first index i where move[i] != i (used in Sims filter)
+# pair(): finds first index i, where move[i] != i (used in Sims filter)
 def pair(move):
     i = 0
-    while (move(i) == i):
+    while move(i) == i:
         i += 1
     return i, move(i)
 
@@ -149,5 +160,7 @@ def sims_filter(generators, N):
                 table[i, j] = move
                 break
             else:
-                move = entry * move**-1
+                new_move = entry * move**-1
+                update_length(new_move, config.lengths[entry] + config.lengths[move])
+                move = new_move
     return {move for move in table.flatten() if move is not None}

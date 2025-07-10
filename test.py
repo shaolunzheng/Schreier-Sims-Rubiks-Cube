@@ -1,17 +1,17 @@
-import numpy as np, time, random
+import time
 from sympy.combinatorics import Permutation, PermutationGroup
-from functions import enumerate, solved_states
+from functions import enumerate_cube
 
 # test runtime of implementation via sympy.combinatorics PermutationGroup
 
-n = 5
+n = 3
 
 if n % 2 == 0:
     N = 6 * n * n
 else :
     N = 6 * n * n - 6
 
-rubiks = enumerate(n, N) # moves that generate the Rubik's cube
+rubiks = enumerate_cube(n, N) # moves that generate the Rubik's cube
 generators = rubiks
 
 start_time = time.time()
