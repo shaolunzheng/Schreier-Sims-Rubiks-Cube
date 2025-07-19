@@ -44,23 +44,26 @@ def enumerate_cube(n, N):
     return turns
 
 # n: size of the Rubik's cube (n x n x n)
-# human_order(): mimics a human solving technique by choosing a specific order of stabilization
+# get_human_order(): mimics a human solving technique by choosing a specific order of stabilization
 # still needs to be automated
-def human_order(n):
+def get_human_order(n):
     if n == 3:
-        return [1,3,5,7,0,2,4,6,9,13,35,39,25,27,29,31,24,26,28,30,
-               8,10,11,12,14,15,16,17,18,19,20,21,22,23,32,33,34,36,37,38,40,41,42,43,44,45,46,47]
+        return [(1,),(3,),(5,),(7,),(0,),(2,),(4,),(6,),(9,),(13,),(35,),(39,),(25,),(27,),(29,),(31,),(24,),(26,),(28,),(30,)]
     if n == 4:
         return [3,7,11,15,51,55,59,63,19,23,27,31,35,39,43,47,67,71,75,79,83,87,91,95,
                 1,6,5,10,9,14,13,2,0,4,8,12,17,22,25,30,66,77,69,74,49,54,53,58,57,62,61,50,48,52,56,60,
                 20,21,26,24,36,37,42,40,64,65,70,68,80,81,86,84,16,18,29,28,32,34,45,44,72,73,78,76,88,89,94,92,33,38,41,46,82,93,85,90]
+# get_human_order_multiple(): stabilizes multiple elements at once
+def get_human_order_multiple(n):
+    if n == 3:
+        return [(1,3,5,7),(0,2,4,6),(9,13,35,39),(25,27,29,31),(24,26,28,30)]
 
 # n: size of the Rubik's cube (n x n x n)
 # N: order of the symmetric group
-# solved_states(): computes the set of visually solved states for a Rubik's cube of size n
-def solved_states(n, N):
-    solved_states = set()
-    solved_states.add(Permutation(N-1))
+# get_solved_states(): computes the set of visually solved states for a Rubik's cube of size n
+def get_solved_states(n, N):
+    result = set()
+    result.add(Permutation(N-1))
     helper_set = set()
 
     if n % 2 == 0:
@@ -84,9 +87,9 @@ def solved_states(n, N):
             P = Permutation(N-1)
             for move in subset:
                 P *= move
-            solved_states.add(P)
+            result.add(P)
 
-    return solved_states
+    return result
 
 # move: a single move
 # value: length of the move written as composition of original generators
@@ -97,40 +100,40 @@ def update_length(move, value):
 
 # generators: a set of moves
 # N: order of the symmetric group
-# k: the current index
-# compute_schreiers_vector(): computes Schreier's vector
-def compute_schreiers_vector(generators, N, k):
-    vector = np.full(N, None)
-    vector[k] = Permutation(N-1)
+# k: the current index list
+# compute_schreiers_tree(): computes Schreier's tree (a dictionary)
+def compute_schreiers_tree(generators, N, k):
+    d = {k: Permutation(N - 1)}
     counter = 1
     while counter > 0:
         counter = 0
-        for i in range(N):
-            if vector[i] is not None:
-                for generator in generators:
-                    j = generator(i)
-                    if vector[j] is None:
-                        vector[j] = vector[i] * generator
-                        update_length(vector[j], config.lengths[vector[i]] + config.lengths[generator])
-                        counter += 1
-                    j = (generator**-1)(i)
-                    if vector[j] is None:
-                        vector[j] = vector[i] * (generator**-1)
-                        update_length(vector[j], config.lengths[vector[i]] + config.lengths[generator])
-                        counter += 1
-    return vector
+        keys = list(d.keys())
+        for i in keys:
+            for generator in generators:
+                j = tuple(generator(x) for x in i)
+                if j not in d.keys():
+                    d[j] = d[i] * generator
+                    update_length(d[j], config.lengths[d[i]] + config.lengths[generator])
+                    counter += 1
+                generator_inverse = generator**-1
+                j = tuple(generator_inverse(x) for x in i)
+                if j not in d.keys():
+                    d[j] = d[i] * generator_inverse
+                    update_length(d[j], config.lengths[d[i]] + config.lengths[generator])
+                    counter += 1
+    return d
 
 # generators: a set of generators
-# schreiers_vector: Schreier's vector of the current stabilizer group
-# schreiers_vector_non_zero: all non-zero entries in Schreier's vector
-# k: the current index
-# generating_set(): computes a generating set for the next stabilizer group
-def generating_set(generators, schreiers_vector, schreiers_vector_non_zero, k):
+# schreiers_tree: Schreier's tree of the current stabilizer group (a dictionary)
+# k: the current index list
+# compute_generating_set(): computes a generating set for the next stabilizer group
+def compute_generating_set(generators, schreiers_tree, k):
     result_set = set()
     for a in generators:
-        for u in schreiers_vector_non_zero:
+        for u in schreiers_tree.values():
             au = u * a
-            pi = schreiers_vector[au(k)]
+            au_k = tuple(au(x) for x in k)
+            pi = schreiers_tree[au_k]
             new_generator = au * pi**-1
             update_length(new_generator, config.lengths[a] + config.lengths[u] + config.lengths[pi])
             result_set.add(new_generator)
@@ -146,8 +149,8 @@ def pair(move):
 
 # generators: a set of generators
 # N: order of the symmetric group
-# sims_filter(): restricts the number of generators to a maximum of N(N-1)/2
-def sims_filter(generators, N):
+# apply_sims_filter(): restricts the number of generators to a maximum of N(N-1)/2
+def apply_sims_filter(generators, N):
     table = np.full((N, N), None)
     for generator in generators:
         move = generator
