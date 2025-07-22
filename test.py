@@ -1,4 +1,4 @@
-import time
+import time, random
 from sympy.combinatorics import Permutation, PermutationGroup
 from functions import enumerate_cube
 
@@ -27,5 +27,15 @@ else :
 #
 # print([P(x) for x in l])
 
-solving_order = [[1,3,5,7],[0,2,4,6],[9,13,35,39],[25,27,29,31],[24,26,28,30]]
-print(len(solving_order))
+# solving_order = [[1,3,5,7],[0,2,4,6],[9,13,35,39],[25,27,29,31],[24,26,28,30]]
+# print(len(solving_order))
+
+numbers = [0, 1, 2, 3, 4, 5, 6, 7, 9, 13, 24, 25, 26, 27, 28, 29, 30, 31, 35, 39]
+random.shuffle(numbers)
+result = []
+for i in range(0, len(numbers), 4):
+    group = numbers[i:i + 4]
+    group.sort()
+    result.append(tuple(group))
+
+print(result)
